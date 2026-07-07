@@ -4,15 +4,18 @@
   "description": "",
   "main": "server.ts",
   "scripts": {
-      "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch src/server.ts",
     "build": "tsc",
+    "generate": "prisma generate",
+    "migrate": "prisma migrate dev",
+    "studio": "prisma studio",
     "start": "node dist/server.js",
-    "stripe:webhook" : "stripe listen --forward-to localhost:5000/api/subscription/webhook",
+    "stripe:webhook": "stripe listen --forward-to localhost:5000/api/subscription/webhook",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
-  "types": "module",
+  "type": "module",
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.10",
