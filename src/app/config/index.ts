@@ -55,6 +55,12 @@ const config = {
     refreshExpiresIn: getEnv("JWT_REFRESH_EXPIRES_IN", "30d"),
   },
 
+  cloudinary: {
+  cloudName: getEnv("CLOUDINARY_CLOUD_NAME"),
+  apiKey: getEnv("CLOUDINARY_API_KEY"),
+  apiSecret: getEnv("CLOUDINARY_API_SECRET"),
+},
+
   stripe: {
     productId: getEnv("STRIPE_PRODUCT_ID"),
     secretKey: getEnv("STRIPE_SECRET_KEY"),
