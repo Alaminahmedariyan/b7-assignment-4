@@ -1,22 +1,26 @@
 import { z } from "zod";
 
 const registerUserValidationSchema = z.object({
-  body: z.object({
-    name: z.string().trim().min(2).max(100),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name cannot exceed 100 characters"),
 
-    email: z
-      .email("Invalid email address")
-      .trim()
-      .toLowerCase(),
+  email: z
+    .email("Invalid email address")
+    .trim()
+    .toLowerCase(),
 
-    password: z.string().min(6),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters"),
 
-    phone: z.string().optional(),
+  phone: z.string().optional(),
 
-    address: z.string().optional(),
+  address: z.string().optional(),
 
-    nidUrl: z.string().optional(),
-  }),
+  nidUrl: z.string().url("Invalid NID URL").optional(),
 });
 
 export const userValidation = {

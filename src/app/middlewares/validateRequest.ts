@@ -1,19 +1,20 @@
-// export const validateRequest = (schema: z.ZodType) => {
-//   return async (req: Request, res: Response, next: NextFunction) => {
-//     try {
-//       if (req.body?.data) {
-//         try {
-//           req.body = JSON.parse(req.body.data);
-//         } catch {
-//           throw new Error("Invalid JSON format in request data.");
-//         }
-//       }
+import { NextFunction, Request, Response } from "express";
+import { z } from "zod";
 
-//       req.body = await schema.parseAsync(req.body);
+export const validateRequest = (schema: z.ZodTypeAny) => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      const parsedBody = await schema.parseAsync(req.body);
 
-//       next();
-//     } catch (error) {
-//       next(error);
-//     }
-//   };
-// };
+      (req as any).body = parsedBody;
+
+      next();
+    } catch (error) {
+      next(error);
+    }
+  };
+};
