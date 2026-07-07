@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { userRoutes } from "../modules/user/user.routes";
 import { authRoutes } from "../modules/auth/auth.routes";
+import { categoryRoutes } from "../modules/category/category.route";
 
 
 
@@ -20,6 +21,10 @@ const moduleRoutes: IModuleRoute[] = [
   {
     path: "/auth",
     route: authRoutes,
+  },
+    {
+    path: "/categories",
+    route: categoryRoutes,
   },
 ];
 

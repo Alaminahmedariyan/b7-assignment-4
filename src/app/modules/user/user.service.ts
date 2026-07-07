@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { StatusCodes } from "http-status-codes";
 
 import config from "../../config";
-import { RegisterUserPayload, UpdateProfilePayload } from "./user.interface";
+import { ChangePasswordPayload, RegisterUserPayload, UpdateProfilePayload } from "./user.interface";
 import { prisma } from "../../../lib/prisma";
 import AppError from "../../errors/appError";
 
@@ -85,8 +85,77 @@ const updateMyProfileIntoDB = async (
 
   return updatedUser;
 };
+
+const changePasswordIntoDB = async (
+  userId: string,
+  payload: ChangePasswordPayload
+) => {
+  const { oldPassword, newPassword } = payload;
+
+  // Prevent using the same password
+  if (oldPassword === newPassword) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "New password must be different from the old password."
+    );
+  }
+
+  // Find user
+  const user = await prisma.user.findUnique({
+    where: {
+      id: userId,
+    },
+  });
+
+  if (!user) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "User not found."
+    );
+  }
+
+  // OAuth user can't change password
+  if (!user.password) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Password change is not available for this account."
+    );
+  }
+
+  // Verify old password
+  const isOldPasswordMatched = await bcrypt.compare(
+    oldPassword,
+    user.password
+  );
+
+  if (!isOldPasswordMatched) {
+    throw new AppError(
+      StatusCodes.UNAUTHORIZED,
+      "Old password is incorrect."
+    );
+  }
+
+  // Hash new password
+  const hashedPassword = await bcrypt.hash(
+    newPassword,
+    config.bcrypt.saltRounds
+  );
+
+  // Update password
+  await prisma.user.update({
+    where: {
+      id: user.id,
+    },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  return null;
+};
 export const userService = {
   registerUserIntoDB,
   getMyProfileFromDB,
   updateMyProfileIntoDB,
+  changePasswordIntoDB,
 };

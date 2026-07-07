@@ -22,19 +22,41 @@ const registerUserValidationSchema = z.object({
 
   nidUrl: z.string().url("Invalid NID URL").optional(),
 });
+
 const updateProfileValidationSchema = z.object({
-  body: z.object({
-    name: z.string().trim().min(2).max(100).optional(),
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name cannot exceed 100 characters")
+    .optional(),
 
-    phone: z.string().trim().optional(),
+  phone: z.string().trim().optional(),
 
-    address: z.string().trim().optional(),
+  address: z.string().trim().optional(),
 
-    nidUrl: z.string().trim().optional(),
-  }),
+  nidUrl: z
+    .string()
+    .url("Invalid NID URL")
+    .optional(),
+});
+
+const changePasswordValidationSchema = z.object({
+  oldPassword: z
+    .string()
+    .trim()
+    .min(6, "Old password must be at least 6 characters")
+    .max(100, "Old password cannot exceed 100 characters"),
+
+  newPassword: z
+    .string()
+    .trim()
+    .min(6, "New password must be at least 6 characters")
+    .max(100, "New password cannot exceed 100 characters"),
 });
 
 export const userValidation = {
   registerUserValidationSchema,
-    updateProfileValidationSchema,
+  updateProfileValidationSchema,
+  changePasswordValidationSchema,
 };

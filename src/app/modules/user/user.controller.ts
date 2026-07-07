@@ -29,23 +29,30 @@ const getMyProfile = catchAsync(async (req: Request, res: Response) => {
     data: user,
   });
 });
-const updateMyProfile = catchAsync(
-  async (req: Request, res: Response) => {
-    const user = await userService.updateMyProfileIntoDB(
-      req.user!.id,
-      req.body
-    );
+const updateMyProfile = catchAsync(async (req: Request, res: Response) => {
+  const user = await userService.updateMyProfileIntoDB(req.user!.id, req.body);
 
-    sendResponse(res, {
-      success: true,
-      statusCode: StatusCodes.OK,
-      message: "Profile updated successfully.",
-      data: user,
-    });
-  }
-);
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: "Profile updated successfully.",
+    data: user,
+  });
+});
+
+const changePassword = catchAsync(async (req: Request, res: Response) => {
+  await userService.changePasswordIntoDB(req.user!.id, req.body);
+
+  sendResponse(res, {
+    success: true,
+    statusCode: StatusCodes.OK,
+    message: "Password changed successfully.",
+    data: null,
+  });
+});
 export const userController = {
   registerUser,
   getMyProfile,
   updateMyProfile,
+  changePassword,
 };

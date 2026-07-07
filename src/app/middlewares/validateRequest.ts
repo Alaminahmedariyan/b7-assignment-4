@@ -8,9 +8,7 @@ export const validateRequest = (schema: z.ZodTypeAny) => {
     next: NextFunction
   ): Promise<void> => {
     try {
-      const parsedBody = await schema.parseAsync(req.body);
-
-      (req as any).body = parsedBody;
+      req.body = await schema.parseAsync(req.body);
 
       next();
     } catch (error) {

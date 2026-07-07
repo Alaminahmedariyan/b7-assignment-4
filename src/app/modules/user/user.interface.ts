@@ -13,3 +13,8 @@ export interface UpdateProfilePayload {
   address?: string;
   nidUrl?: string;
 }
+
+export interface ChangePasswordPayload {
+  oldPassword: string;
+  newPassword: string;
+}
