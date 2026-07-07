@@ -1,0 +1,26 @@
+model User {
+  id       String       @id @default(cuid())
+  name     String
+  email    String       @unique
+  password String? // hashed, null if OAuth-only user
+  provider AuthProvider @default(LOCAL)
+  phone    String?
+  address  String?
+  nidUrl   String?
+
+  role   Role       @default(CUSTOMER)
+  status UserStatus @default(ACTIVE)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  gearItems    GearItem[]    @relation("ProviderGearItems")
+  rentalOrders RentalOrder[] @relation("CustomerOrders")
+  reviews      Review[]      @relation("CustomerReviews")
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+}

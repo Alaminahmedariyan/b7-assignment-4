@@ -1,0 +1,50 @@
+// ============================================
+// ENUMS
+// ============================================
+
+enum Role {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  VERIFICATION_PENDING
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PLACED
+  CANCELLED
+  COMPLETED
+}
+
+enum ItemRentalStatus {
+  CONFIRMED
+  READY_FOR_PICKUP
+  PICKED_UP
+  RETURNED
+  OVERDUE
+  DAMAGED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  STRIPE
+  SSLCOMMERZ
+  CASH_ON_DELIVERY
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}

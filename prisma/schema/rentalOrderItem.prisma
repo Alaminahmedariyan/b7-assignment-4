@@ -1,0 +1,32 @@
+model RentalOrderItem {
+  id              String    @id @default(cuid())
+  quantity        Int       @default(1)
+  pricePerDay     Decimal   @db.Decimal(10, 2)
+  subtotal        Decimal   @db.Decimal(10, 2)
+  securityDeposit Decimal   @default(0.00) @db.Decimal(10, 2)
+  startDate       DateTime  @db.Date
+  endDate         DateTime  @db.Date
+  pickedUpAt      DateTime?
+  returnedAt      DateTime?
+  lateFee         Decimal   @default(0.00) @db.Decimal(10, 2)
+
+  status    ItemRentalStatus @default(CONFIRMED)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  rentalOrderId String
+  rentalOrder   RentalOrder @relation(fields: [rentalOrderId], references: [id], onDelete: Cascade)
+
+  gearItemId String
+  gearItem   GearItem @relation(fields: [gearItemId], references: [id], onDelete: Restrict)
+
+  reviews Review[]
+
+  @@index([rentalOrderId])
+  @@index([gearItemId])
+  @@index([status])
+  @@index([startDate])
+  @@index([endDate])
+  @@index([gearItemId, startDate, endDate])
+  @@map("rental_order_items")
+}

@@ -1,0 +1,16 @@
+
+model GearImage {
+  id        String   @id @default(cuid())
+  imageUrl  String
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  gearItemId String
+  gearItem   GearItem @relation(fields: [gearItemId], references: [id], onDelete: Cascade)
+
+  @@index([gearItemId])
+  // Actual "only one primary per item" enforcement is a partial
+  // unique index added in migration_add_constraints.sql
+  @@index([gearItemId, isPrimary])
+  @@map("gear_images")
+}

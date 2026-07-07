@@ -1,0 +1,22 @@
+
+model Review {
+  id        String   @id @default(cuid())
+  rating    Int      @db.SmallInt
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customerId String
+  customer   User   @relation("CustomerReviews", fields: [customerId], references: [id], onDelete: Cascade)
+
+  gearItemId String
+  gearItem   GearItem @relation(fields: [gearItemId], references: [id], onDelete: Cascade)
+
+  rentalOrderItemId String
+  rentalOrderItem   RentalOrderItem @relation(fields: [rentalOrderItemId], references: [id], onDelete: Cascade)
+
+  @@unique([rentalOrderItemId])
+  @@index([customerId])
+  @@index([gearItemId])
+  @@map("reviews")
+}
