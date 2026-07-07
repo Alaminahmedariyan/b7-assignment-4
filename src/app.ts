@@ -2,6 +2,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import express, { Application, Request, Response } from "express";
 import config from "./app/config";
+import { globalRoutes } from "./app/routes";
 
 const app: Application = express();
 
@@ -24,6 +25,6 @@ app.get("/", (req: Request, res: Response) => {
   res.send("Hello, World!");
 });
 
-// app.post()
+app.use("/api/v1", globalRoutes);
 
 export default app;
