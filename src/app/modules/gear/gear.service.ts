@@ -7,13 +7,26 @@ import AppError from "../../errors/appError";
 import { CreateGearPayload, GearQuery, UpdateGearPayload } from "./gear.interface";
 import { Prisma } from "../../../../generated/prisma/client";
 import { gearSearchableFields } from "./gear.constant";
+import { deleteFileFromCloudinary, uploadFileToCloudinary } from "../../config/cloudinary";
 
 const createGearIntoDB = async (providerId: string, payload: CreateGearPayload, files: Express.Multer.File[]) => {
   if (!files || files.length === 0) {
     throw new AppError(StatusCodes.BAD_REQUEST, "Please upload at least one image.");
   }
 
-  console.log(files);
+  const uploadedImages: {
+    url: string;
+    publicId: string;
+  }[] = await Promise.all(
+    files.map(async (file) => {
+      const result = await uploadFileToCloudinary(file.buffer, file.originalname);
+
+      return {
+        url: result.secure_url,
+        publicId: result.public_id,
+      };
+    }),
+  );
   const { name, slug, description, brand, pricePerDay, totalQuantity, specifications, categoryId } = payload;
 
   // Check duplicate name
@@ -72,21 +85,59 @@ const createGearIntoDB = async (providerId: string, payload: CreateGearPayload, 
     throw new AppError(StatusCodes.FORBIDDEN, "Provider account is not active.");
   }
 
-  const gear = await prisma.gearItem.create({
-    data: {
-      name,
-      slug,
-      description,
-      brand,
-      pricePerDay,
-      totalQuantity,
-      specifications,
-      providerId,
-      categoryId,
-    },
-  });
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      // Create Gear
+      const gear = await tx.gearItem.create({
+        data: {
+          name,
+          slug,
+          description,
+          brand,
+          pricePerDay,
+          totalQuantity,
+          specifications,
+          providerId,
+          categoryId,
+        },
+      });
 
-  return gear;
+      // Save Images
+      await tx.gearImage.createMany({
+        data: uploadedImages.map((image, index) => ({
+          imageUrl: image.url,
+          gearItemId: gear.id,
+          isPrimary: index === 0, // First image will be primary
+        })),
+      });
+
+      // Return gear with images
+      const gearWithImages = await tx.gearItem.findUnique({
+        where: {
+          id: gear.id,
+        },
+        include: {
+          images: true,
+          category: true,
+          provider: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+        },
+      });
+
+      return gearWithImages;
+    });
+
+    return result;
+  } catch (error) {
+    await Promise.all(uploadedImages.map((image) => deleteFileFromCloudinary(image.publicId)));
+
+    throw error;
+  }
 };
 
 const getAllGearsFromDB = async (query: GearQuery) => {
@@ -325,10 +376,15 @@ const deleteGearFromDB = async (providerId: string, gearId: string) => {
   return null;
 };
 
+const checkGearAvailabilityFromDB = async (gearId: string, startDate: string, endDate: string) => {
+    
+};
+
 export const gearService = {
   createGearIntoDB,
   getAllGearsFromDB,
   getSingleGearFromDB,
   updateGearIntoDB,
   deleteGearFromDB,
+  checkGearAvailabilityFromDB,
 };

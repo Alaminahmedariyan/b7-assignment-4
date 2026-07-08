@@ -17,7 +17,7 @@ router.get("/:id", gearController.getSingleGear);
 router.post(
   "/",
   auth(Role.PROVIDER),
-  upload.array("images", 10),
+  upload.array("file", 10),
   validateRequest(gearValidation.createGearValidationSchema),
   gearController.createGear
 );
@@ -35,6 +35,11 @@ router.delete(
   "/:id",
   auth(Role.PROVIDER),
   gearController.deleteGear
+);
+
+router.get(
+  "/:id/availability",
+  gearController.checkAvailability
 );
 
 export const gearRoutes = router;

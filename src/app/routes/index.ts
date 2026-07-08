@@ -2,6 +2,7 @@ import { Router } from "express";
 import { userRoutes } from "../modules/user/user.routes";
 import { authRoutes } from "../modules/auth/auth.routes";
 import { categoryRoutes } from "../modules/category/category.route";
+import { gearRoutes } from "../modules/gear/gear.route";
 
 
 
@@ -26,6 +27,10 @@ const moduleRoutes: IModuleRoute[] = [
     path: "/categories",
     route: categoryRoutes,
   },
+  {
+    path: "/gears",
+    route: gearRoutes,
+  }
 ];
 
 moduleRoutes.forEach((route) => {

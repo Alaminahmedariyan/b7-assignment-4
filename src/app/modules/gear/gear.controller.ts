@@ -7,9 +7,12 @@ import { sendResponse } from "../../utils/sendResponse";
 import { gearService } from "./gear.service";
 
 const createGear = catchAsync(async (req: Request, res: Response) => {
-  if (req.body.specifications) {
-    req.body.specifications = JSON.parse(req.body.specifications);
-  }
+if (
+  req.body.specifications &&
+  typeof req.body.specifications === "string"
+) {
+  req.body.specifications = JSON.parse(req.body.specifications);
+}
   const providerId = req.user!.id;
 
   const result = await gearService.createGearIntoDB(providerId, req.body, req.files as Express.Multer.File[]);
@@ -67,10 +70,29 @@ const deleteGear = catchAsync(async (req: Request, res: Response) => {
   });
 });
 
+const checkAvailability = catchAsync(
+  async (req: Request, res: Response) => {
+    const result =
+      await gearService.checkGearAvailabilityFromDB(
+        req.params.id as string,
+        req.query.startDate as string,
+        req.query.endDate as string
+      );
+
+    sendResponse(res, {
+      success: true,
+      statusCode: StatusCodes.OK,
+      message: "Availability checked successfully.",
+      data: result,
+    });
+  }
+);
+
 export const gearController = {
   createGear,
   getAllGears,
   getSingleGear,
   updateGear,
   deleteGear,
+  checkAvailability
 };

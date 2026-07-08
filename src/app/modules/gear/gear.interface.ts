@@ -35,6 +35,11 @@ export interface UpdateGearPayload {
   categoryId?: string;
 }
 
+export interface AvailabilityQuery {
+  startDate: string;
+  endDate: string;
+}
+
 export interface GearQuery {
 
   page?: string;

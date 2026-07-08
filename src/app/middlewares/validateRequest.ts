@@ -8,7 +8,13 @@ export const validateRequest = (schema: z.ZodTypeAny) => {
     next: NextFunction
   ): Promise<void> => {
     try {
-      req.body = await schema.parseAsync(req.body);
+      if (req.body?.data) {
+        req.body = JSON.parse(req.body.data);
+      }
+
+      const parsedBody = await schema.parseAsync(req.body);
+
+      (req as any).body = parsedBody;
 
       next();
     } catch (error) {
