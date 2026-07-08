@@ -1,4 +1,4 @@
-import { CancelRentalPayload, CreateRentalPayload, RentalQuery } from "./rental.interface";
+import { CancelRentalPayload, CreateRentalPayload, ProviderRentalQuery, RentalQuery, UpdateRentalStatusPayload } from "./rental.interface";
 import { Prisma } from "../../../../generated/prisma/client";
 
 import { ItemRentalStatus, OrderStatus, PaymentMethod, PaymentStatus } from "../../../../generated/prisma/enums";
@@ -320,9 +320,323 @@ const cancelRentalIntoDB = async (customerId: string, rentalId: string, payload:
   return updatedRental;
 };
 
+const getProviderRentalsFromDB = async (
+  providerId: string,
+  query: ProviderRentalQuery
+) => {
+  const {
+    page = "1",
+    limit = "10",
+    status,
+    startDate,
+    endDate,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = query;
+
+  const whereConditions: Prisma.RentalOrderItemWhereInput = {
+    gearItem: {
+      providerId,
+    },
+  };
+
+  if (status) {
+    whereConditions.status = status as ItemRentalStatus;
+  }
+
+  if (startDate && endDate) {
+    whereConditions.startDate = {
+      gte: new Date(startDate),
+    };
+
+    whereConditions.endDate = {
+      lte: new Date(endDate),
+    };
+  }
+
+  const data = await prisma.rentalOrderItem.findMany({
+    where: whereConditions,
+
+    include: {
+      rentalOrder: {
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+
+          payments: true,
+        },
+      },
+
+      gearItem: {
+        include: {
+          images: true,
+          category: true,
+        },
+      },
+    },
+
+    skip: (Number(page) - 1) * Number(limit),
+
+    take: Number(limit),
+
+    orderBy: {
+      [sortBy]: sortOrder,
+    },
+  });
+
+  const total = await prisma.rentalOrderItem.count({
+    where: whereConditions,
+  });
+
+  return {
+    meta: {
+      page: Number(page),
+      limit: Number(limit),
+      total,
+      totalPage: Math.ceil(total / Number(limit)),
+    },
+
+    data,
+  };
+};
+
+const getProviderSingleRentalFromDB = async (
+  providerId: string,
+  rentalOrderId: string
+) => {
+  const rental = await prisma.rentalOrder.findFirst({
+    where: {
+      id: rentalOrderId,
+
+      items: {
+        some: {
+          gearItem: {
+            providerId,
+          },
+        },
+      },
+    },
+
+    include: {
+      customer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      payments: true,
+
+      items: {
+        include: {
+          gearItem: {
+            include: {
+              images: true,
+              category: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!rental) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Rental not found."
+    );
+  }
+
+  return rental;
+};
+
+const updateRentalStatusIntoDB = async (
+  providerId: string,
+  rentalOrderId: string,
+  payload: UpdateRentalStatusPayload
+) => {
+  const rental = await prisma.rentalOrder.findFirst({
+    where: {
+      id: rentalOrderId,
+      items: {
+        some: {
+          gearItem: {
+            providerId,
+          },
+        },
+      },
+    },
+
+    include: {
+      items: true,
+    },
+  });
+
+  if (!rental) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Rental not found."
+    );
+  }
+
+  if (rental.status === OrderStatus.CANCELLED) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Cancelled rental cannot be updated."
+    );
+  }
+
+  const rentalItem = rental.items[0];
+
+  if (!rentalItem) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Rental item not found."
+    );
+  }
+
+  const currentStatus = rentalItem.status;
+  const nextStatus = payload.status;
+
+  const validTransitions: Record<
+    ItemRentalStatus,
+    ItemRentalStatus[]
+  > = {
+    [ItemRentalStatus.CONFIRMED]: [
+      ItemRentalStatus.READY_FOR_PICKUP,
+      ItemRentalStatus.CANCELLED,
+    ],
+
+    [ItemRentalStatus.READY_FOR_PICKUP]: [
+      ItemRentalStatus.PICKED_UP,
+      ItemRentalStatus.CANCELLED,
+    ],
+
+    [ItemRentalStatus.PICKED_UP]: [
+      ItemRentalStatus.RETURNED,
+      ItemRentalStatus.OVERDUE,
+      ItemRentalStatus.DAMAGED,
+    ],
+
+    [ItemRentalStatus.RETURNED]: [],
+
+    [ItemRentalStatus.OVERDUE]: [
+      ItemRentalStatus.RETURNED,
+      ItemRentalStatus.DAMAGED,
+    ],
+
+    [ItemRentalStatus.DAMAGED]: [],
+
+    [ItemRentalStatus.CANCELLED]: [],
+  };
+
+  if (
+    !validTransitions[currentStatus].includes(nextStatus)
+  ) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      `Cannot change status from ${currentStatus} to ${nextStatus}.`
+    );
+  }
+
+  const updateData: Prisma.RentalOrderItemUpdateInput = {
+    status: nextStatus,
+  };
+
+  if (nextStatus === ItemRentalStatus.PICKED_UP) {
+    updateData.pickedUpAt = new Date();
+  }
+
+  if (nextStatus === ItemRentalStatus.RETURNED) {
+    updateData.returnedAt = new Date();
+  }
+
+  await prisma.rentalOrderItem.update({
+    where: {
+      id: rentalItem.id,
+    },
+    data: updateData,
+  });
+
+  const updatedRental = await prisma.rentalOrder.findUnique({
+    where: {
+      id: rentalOrderId,
+    },
+
+    include: {
+      customer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+        },
+      },
+
+      items: {
+        include: {
+          gearItem: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+              brand: true,
+              pricePerDay: true,
+              images: true,
+            },
+          },
+        },
+      },
+
+      payments: true,
+    },
+  });
+
+  if (!updatedRental) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Rental not found."
+    );
+  }
+
+  return {
+    ...updatedRental,
+
+    totalAmount: Number(updatedRental.totalAmount),
+
+    payments: updatedRental.payments.map((payment) => ({
+      ...payment,
+      amount: Number(payment.amount),
+      refundAmount: payment.refundAmount
+        ? Number(payment.refundAmount)
+        : null,
+    })),
+
+    items: updatedRental.items.map((item) => ({
+      ...item,
+      pricePerDay: Number(item.pricePerDay),
+      subtotal: Number(item.subtotal),
+      securityDeposit: Number(item.securityDeposit),
+      lateFee: Number(item.lateFee),
+
+      gearItem: {
+        ...item.gearItem,
+        pricePerDay: Number(item.gearItem.pricePerDay),
+      },
+    })),
+  };
+};
 export const rentalService = {
   createRentalIntoDB,
   getMyRentalsFromDB,
   getSingleRentalFromDB,
   cancelRentalIntoDB,
+  updateRentalStatusIntoDB,
+  getProviderRentalsFromDB,
+  getProviderSingleRentalFromDB,
 };

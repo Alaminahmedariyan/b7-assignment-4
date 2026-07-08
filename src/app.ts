@@ -18,10 +18,10 @@ app.use(
 );
 
 // Stripe Webhook (Future)
-// app.use(
-//   "/api/v1/payment/webhook",
-//   express.raw({ type: "application/json" })
-// );
+app.use(
+  "/api/v1/payment/webhook",
+  express.raw({ type: "application/json" })
+);
 
 // Body Parser
 app.use(express.json());

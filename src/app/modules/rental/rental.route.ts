@@ -24,7 +24,11 @@ router.get(
   auth(Role.CUSTOMER),
   rentalController.getMyRentals
 );
-
+router.get(
+  "/provider/rentals",
+  auth(Role.PROVIDER),
+  rentalController.getProviderRentals
+);
 router.get(
   "/:id",
   auth(Role.CUSTOMER),
@@ -39,5 +43,18 @@ router.patch(
   ),
   rentalController.cancelRental
 );
+router.get(
+  "/provider/rentals/:id",
+  auth(Role.PROVIDER),
+  rentalController.getProviderSingleRental
+);
 
+router.patch(
+  "/provider/rentals/:id/status",
+  auth(Role.PROVIDER),
+  validateRequest(
+    rentalValidation.updateRentalStatusValidationSchema
+  ),
+  rentalController.updateRentalStatus
+);
 export const rentalRoutes = router;

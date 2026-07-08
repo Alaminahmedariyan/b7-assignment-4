@@ -46,6 +46,7 @@
     "multer": "^2.2.0",
     "multer-storage-cloudinary": "^4.0.0",
     "pg": "^8.22.0",
+    "stripe": "^22.3.0",
     "zod": "^4.4.3"
   }
 }

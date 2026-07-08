@@ -23,6 +23,28 @@ export interface RentalQuery {
   sortOrder?: "asc" | "desc";
 }
 
+export interface UpdateRentalStatusPayload {
+  status:
+    | "READY_FOR_PICKUP"
+    | "PICKED_UP"
+    | "RETURNED";
+}
+
+export interface ProviderRentalQuery {
+  page?: string;
+  limit?: string;
+
+  status?: string;
+
+  startDate?: string;
+
+  endDate?: string;
+
+  sortBy?: string;
+
+  sortOrder?: "asc" | "desc";
+}
+
 export interface CancelRentalPayload {
   cancellationReason: string;
 }

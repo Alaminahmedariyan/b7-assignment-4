@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ItemRentalStatus } from "../../../../generated/prisma/enums";
 
 const rentalItemSchema = z.object({
   gearItemId: z.string().min(1),
@@ -19,7 +20,16 @@ export const cancelRentalValidationSchema = z.object({
     .max(500),
 });
 
+const updateRentalStatusValidationSchema = z.object({
+  status: z.enum([
+    ItemRentalStatus.READY_FOR_PICKUP,
+    ItemRentalStatus.PICKED_UP,
+    ItemRentalStatus.RETURNED,
+  ]),
+});
+
 export const rentalValidation = {
   createRentalValidationSchema,
   cancelRentalValidationSchema,
+  updateRentalStatusValidationSchema,
 };
