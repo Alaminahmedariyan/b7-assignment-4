@@ -19,4 +19,25 @@ router.post(
   rentalController.createRental
 );
 
+router.get(
+  "/my-rentals",
+  auth(Role.CUSTOMER),
+  rentalController.getMyRentals
+);
+
+router.get(
+  "/:id",
+  auth(Role.CUSTOMER),
+  rentalController.getSingleRental
+);
+
+router.patch(
+  "/:id/cancel",
+  auth(Role.CUSTOMER),
+  validateRequest(
+    rentalValidation.cancelRentalValidationSchema
+  ),
+  rentalController.cancelRental
+);
+
 export const rentalRoutes = router;

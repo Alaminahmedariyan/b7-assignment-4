@@ -3,6 +3,7 @@ import { userRoutes } from "../modules/user/user.routes";
 import { authRoutes } from "../modules/auth/auth.routes";
 import { categoryRoutes } from "../modules/category/category.route";
 import { gearRoutes } from "../modules/gear/gear.route";
+import { rentalRoutes } from "../modules/rental/rental.route";
 
 
 
@@ -30,6 +31,10 @@ const moduleRoutes: IModuleRoute[] = [
   {
     path: "/gears",
     route: gearRoutes,
+  },
+  {
+    path: "/rentals",
+    route: rentalRoutes,
   }
 ];
 

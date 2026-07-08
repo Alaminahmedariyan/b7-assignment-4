@@ -14,3 +14,15 @@ export interface RentalQuery {
   limit?: string;
   status?: string;
 }
+
+export interface RentalQuery {
+  page?: string;
+  limit?: string;
+  status?: string;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+}
+
+export interface CancelRentalPayload {
+  cancellationReason: string;
+}

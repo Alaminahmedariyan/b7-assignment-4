@@ -11,6 +11,15 @@ const createRentalValidationSchema = z.object({
   items: z.array(rentalItemSchema).min(1),
 });
 
+export const cancelRentalValidationSchema = z.object({
+  cancellationReason: z
+    .string()
+    .trim()
+    .min(5, "Cancellation reason is required.")
+    .max(500),
+});
+
 export const rentalValidation = {
   createRentalValidationSchema,
+  cancelRentalValidationSchema,
 };
