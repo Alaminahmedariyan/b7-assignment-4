@@ -376,8 +376,55 @@ const deleteGearFromDB = async (providerId: string, gearId: string) => {
   return null;
 };
 
-const checkGearAvailabilityFromDB = async (gearId: string, startDate: string, endDate: string) => {
-    
+const checkGearAvailabilityFromDB = async (
+  gearId: string,
+  startDate: string,
+  endDate: string
+) => {
+  if (!startDate || !endDate) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Start date and end date are required."
+    );
+  }
+
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+
+  if (start > end) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "Start date cannot be after end date."
+    );
+  }
+
+  const gear = await prisma.gearItem.findUnique({
+    where: {
+      id: gearId,
+      deletedAt: null,
+    },
+  });
+
+  if (!gear) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Gear not found."
+    );
+  }
+
+  // Rental overlap logic পরে যোগ করব
+  const bookedQuantity = 0;
+
+  const availableQuantity =
+    gear.totalQuantity - bookedQuantity;
+
+  return {
+    gearId: gear.id,
+    totalQuantity: gear.totalQuantity,
+    bookedQuantity,
+    availableQuantity,
+    isAvailable: availableQuantity > 0,
+  };
 };
 
 export const gearService = {
