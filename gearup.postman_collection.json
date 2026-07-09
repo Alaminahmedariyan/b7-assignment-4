@@ -1,0 +1,137 @@
+{
+  "info": {
+    "name": "GearUp API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "384e80e8-879e-41cb-b04f-cf2007a4ff14"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "customer_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "provider_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            },
+            "description": "Authenticates user and returns access/refresh tokens"
+          },
+          "response": [
+            {
+              "name": "Successful Login",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{base_url}}/auth/login",
+                  "host": ["{{base_url}}"],
+                  "path": ["auth", "login"]
+                }
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                {
+                  "key": "Content-Type",
+                  "value": "application/json"
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "accessToken=abc123; Path=/; HttpOnly; Secure; SameSite=Lax"
+                },
+                {
+                  "key": "Set-Cookie",
+                  "value": "refreshToken=xyz456; Path=/; HttpOnly; Secure; SameSite=Lax"
+                }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"statusCode\": 200,\n  \"message\": \"Login successful.\",\n  \"data\": {\n    \"accessToken\": \"abc123\",\n    \"refreshToken\": \"xyz456\"\n  }\n}"
+            }
+          ],
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const response = pm.response.json();",
+                  "pm.collectionVariables.set(\"access_token\", response.data.accessToken);",
+                  "pm.collectionVariables.set(\"refresh_token\", response.data.refreshToken);",
+                  "",
+                  "// Set role-specific tokens based on user type",
+                  "if (response.data.user?.role === \"customer\") {",
+                  "    pm.collectionVariables.set(\"customer_token\", response.data.accessToken);",
+                  "} else if (response.data.user?.role === \"provider\") {",
+                  "    pm.collectionVariables.set(\"provider_token\", response.data.accessToken);",
+                  "} else if (response.data.user?.role === \"admin\") {",
+                  "    pm.collectionVariables.set(\"admin_token\", response.data.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
