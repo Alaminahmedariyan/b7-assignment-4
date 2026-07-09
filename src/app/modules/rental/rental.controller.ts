@@ -92,6 +92,7 @@ const updateRentalStatus = catchAsync(
     });
   }
 );
+
 export const rentalController = {
   createRental,
   getMyRentals,

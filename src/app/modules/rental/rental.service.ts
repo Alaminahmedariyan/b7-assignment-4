@@ -12,6 +12,8 @@ import { StatusCodes } from "http-status-codes";
 import { calculateRentalDays, generateOrderNumber, generateTransactionId } from "./rental.utils";
 
 import { activeRentalStatuses } from "./rental.constant";
+import { stripe } from "../payment/payment.stripe";
+import config from "../../config";
 
 const createRentalIntoDB = async (customerId: string, payload: CreateRentalPayload) => {
   const customer = await prisma.user.findUnique({
@@ -631,6 +633,7 @@ const updateRentalStatusIntoDB = async (
     })),
   };
 };
+
 export const rentalService = {
   createRentalIntoDB,
   getMyRentalsFromDB,
@@ -638,5 +641,6 @@ export const rentalService = {
   cancelRentalIntoDB,
   updateRentalStatusIntoDB,
   getProviderRentalsFromDB,
-  getProviderSingleRentalFromDB,
+  getProviderSingleRentalFromDB
+
 };

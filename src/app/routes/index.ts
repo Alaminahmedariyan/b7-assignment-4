@@ -4,6 +4,8 @@ import { authRoutes } from "../modules/auth/auth.routes";
 import { categoryRoutes } from "../modules/category/category.route";
 import { gearRoutes } from "../modules/gear/gear.route";
 import { rentalRoutes } from "../modules/rental/rental.route";
+import { dashboardRoutes } from "../modules/dashboard/dashboard.route";
+import { reviewRoutes } from "../modules/review/review.route";
 
 
 
@@ -35,7 +37,15 @@ const moduleRoutes: IModuleRoute[] = [
   {
     path: "/rentals",
     route: rentalRoutes,
-  }
+  },
+  {
+    path: "/dashboard",
+    route: dashboardRoutes,
+  },
+    {
+    path: "/reviews",
+    route: reviewRoutes,
+  },
 ];
 
 moduleRoutes.forEach((route) => {
