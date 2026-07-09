@@ -607,8 +607,8 @@ A complete Postman collection is included in the root directory of this reposito
 # 👨‍💻 Author
 
 - **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- LinkedIn: [Your Profile](https://linkedin.com/in/yourprofile)
+- GitHub: [@Alaminahmedariyan](https://github.com/Alaminahmedariyan)
+- LinkedIn: [Your Profile](www.linkedin.com/in/alamin-ahmed-536463382)
 
 ---
 
