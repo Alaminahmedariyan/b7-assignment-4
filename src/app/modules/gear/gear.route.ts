@@ -11,35 +11,11 @@ import { upload } from "../../middlewares/multer";
 const router = Router();
 
 router.get("/", gearController.getAllGears);
-
+router.get("/:id/availability", gearController.checkAvailability);
 router.get("/:id", gearController.getSingleGear);
-
-router.post(
-  "/",
-  auth(Role.PROVIDER),
-  upload.array("file", 10),
-  validateRequest(gearValidation.createGearValidationSchema),
-  gearController.createGear
-);
-
-router.patch(
-  "/:id",
-  auth(Role.PROVIDER),
-  validateRequest(
-    gearValidation.updateGearValidationSchema
-  ),
-  gearController.updateGear
-);
-
-router.delete(
-  "/:id",
-  auth(Role.PROVIDER),
-  gearController.deleteGear
-);
-
-router.get(
-  "/:id/availability",
-  gearController.checkAvailability
-);
+router.post( "/", auth(Role.PROVIDER), upload.array("file", 10),
+ validateRequest(gearValidation.createGearValidationSchema),  gearController.createGear);
+router.patch("/:id", auth(Role.PROVIDER), validateRequest(gearValidation.updateGearValidationSchema), gearController.updateGear);
+router.delete("/:id", auth(Role.PROVIDER), gearController.deleteGear);
 
 export const gearRoutes = router;
