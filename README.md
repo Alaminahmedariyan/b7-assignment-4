@@ -367,6 +367,8 @@ Routes are protected using the `auth(...roles)` middleware. Only users with matc
 | `POST` | `/api/v1/payments/create-intent` | `CUSTOMER`    | Create Stripe Payment Intent             |
 | `POST` | `/api/v1/payments/confirm`       | `CUSTOMER`    | Confirm payment and update order status  |
 | `POST` | `/api/v1/payments/webhook`       | Public        | Stripe Webhook endpoint for async events |
+| `POST` | `/api/v1/payments`               | `CUSTOMER`    | Stripe Webhook endpoint for async events |
+| `POST` | `/api/v1/payments/:id`              | `CUSTOMER`    | Stripe Webhook endpoint for async events |
 
 ### Dashboard Endpoints
 
