@@ -1,18 +1,12 @@
-export interface RentalItemPayload {
+export interface CreateRentalItem {
   gearItemId: string;
   quantity: number;
+  startDate: string;
+  endDate: string;
 }
 
 export interface CreateRentalPayload {
-  startDate: string;
-  endDate: string;
-  items: RentalItemPayload[];
-}
-
-export interface RentalQuery {
-  page?: string;
-  limit?: string;
-  status?: string;
+  items: CreateRentalItem[];
 }
 
 export interface RentalQuery {
@@ -33,15 +27,10 @@ export interface UpdateRentalStatusPayload {
 export interface ProviderRentalQuery {
   page?: string;
   limit?: string;
-
   status?: string;
-
   startDate?: string;
-
   endDate?: string;
-
   sortBy?: string;
-
   sortOrder?: "asc" | "desc";
 }
 

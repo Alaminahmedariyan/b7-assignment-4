@@ -1,13 +1,11 @@
 export interface CreateCategoryPayload {
   name: string;
-  slug: string;
   description?: string;
-  parentId?: string;
+  parentId?: string | null;
 }
 
 export interface UpdateCategoryPayload {
   name?: string;
-  slug?: string;
   description?: string;
   parentId?: string | null;
 }

@@ -3,16 +3,20 @@
   "version": "0.0.1",
   "description": "",
   "main": "server.ts",
-  "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "generate": "prisma generate",
-    "migrate": "prisma migrate dev",
-    "studio": "prisma studio",
-    "start": "node dist/server.js",
-    "stripe:webhook": "stripe listen --forward-to localhost:5000/api/subscription/webhook",
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "dev": "tsx watch src/server.ts",
+  "build": "tsc",
+  "seed": "tsx prisma/seed.ts",
+  "postinstall": "prisma generate",
+  "generate": "prisma generate",
+  "migrate": "prisma migrate dev",
+  "migrate:deploy": "prisma migrate deploy",
+  "studio": "prisma studio",
+  "reset": "prisma migrate reset",
+  "db:setup": "prisma generate && prisma migrate dev && npm run seed",
+  "start": "node dist/server.js",
+  "test": "echo \"Error: no test specified\" && exit 1"
+},
   "author": "",
   "license": "ISC",
   "type": "module",
@@ -46,6 +50,7 @@
     "multer": "^2.2.0",
     "multer-storage-cloudinary": "^4.0.0",
     "pg": "^8.22.0",
+    "slugify": "^1.6.9",
     "stripe": "^22.3.0",
     "zod": "^4.4.3"
   }

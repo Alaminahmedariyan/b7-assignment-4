@@ -39,7 +39,6 @@ enum ItemRentalStatus {
 enum PaymentMethod {
   STRIPE
   SSLCOMMERZ
-  CASH_ON_DELIVERY
 }
 
 enum PaymentStatus {

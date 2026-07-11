@@ -1,19 +1,19 @@
 import { StatusCodes } from "http-status-codes";
-
+import slugify from "slugify";
 import { prisma } from "../../../lib/prisma";
 import AppError from "../../errors/appError";
 
-import {
-  CreateCategoryPayload,
-  UpdateCategoryPayload,
-} from "./category.interface";
+import { CreateCategoryPayload, UpdateCategoryPayload } from "./category.interface";
 
-const createCategoryIntoDB = async (
-  payload: CreateCategoryPayload
-) => {
-  const { name, slug, description, parentId } = payload;
+const createCategoryIntoDB = async (payload: CreateCategoryPayload) => {
+  const { name, description, parentId } = payload;
 
-  // Check duplicate category name
+  const slug = slugify(name, {
+    lower: true,
+    strict: true,
+    trim: true,
+  });
+
   const isCategoryNameExists = await prisma.category.findUnique({
     where: {
       name,
@@ -21,13 +21,9 @@ const createCategoryIntoDB = async (
   });
 
   if (isCategoryNameExists) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      "Category name already exists."
-    );
+    throw new AppError(StatusCodes.CONFLICT, "Category name already exists.");
   }
 
-  // Check duplicate slug
   const isSlugExists = await prisma.category.findUnique({
     where: {
       slug,
@@ -35,13 +31,9 @@ const createCategoryIntoDB = async (
   });
 
   if (isSlugExists) {
-    throw new AppError(
-      StatusCodes.CONFLICT,
-      "Category slug already exists."
-    );
+    throw new AppError(StatusCodes.CONFLICT, "Category slug already exists.");
   }
 
-  // Validate parent category
   if (parentId) {
     const parentCategory = await prisma.category.findUnique({
       where: {
@@ -50,23 +42,18 @@ const createCategoryIntoDB = async (
     });
 
     if (!parentCategory) {
-      throw new AppError(
-        StatusCodes.NOT_FOUND,
-        "Parent category not found."
-      );
+      throw new AppError(StatusCodes.NOT_FOUND, "Parent category not found.");
     }
   }
 
-  const category = await prisma.category.create({
+  return prisma.category.create({
     data: {
       name,
       slug,
       description,
-      parentId,
+      parentId: parentId ?? null,
     },
   });
-
-  return category;
 };
 
 const getAllCategoriesFromDB = async () => {
@@ -123,19 +110,13 @@ const getSingleCategoryFromDB = async (categoryId: string) => {
   });
 
   if (!category) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "Category not found."
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "Category not found.");
   }
 
   return category;
 };
 
-const updateCategoryIntoDB = async (
-  categoryId: string,
-  payload: UpdateCategoryPayload
-) => {
+const updateCategoryIntoDB = async (categoryId: string, payload: UpdateCategoryPayload) => {
   const category = await prisma.category.findUnique({
     where: {
       id: categoryId,
@@ -143,15 +124,13 @@ const updateCategoryIntoDB = async (
   });
 
   if (!category) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "Category not found."
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "Category not found.");
   }
 
-  const { name, slug, parentId } = payload;
+  const { name, description, parentId } = payload;
 
-  // Duplicate name check
+  let slug: string | undefined;
+
   if (name) {
     const existingCategory = await prisma.category.findFirst({
       where: {
@@ -163,15 +142,15 @@ const updateCategoryIntoDB = async (
     });
 
     if (existingCategory) {
-      throw new AppError(
-        StatusCodes.CONFLICT,
-        "Category name already exists."
-      );
+      throw new AppError(StatusCodes.CONFLICT, "Category name already exists.");
     }
-  }
 
-  // Duplicate slug check
-  if (slug) {
+    slug = slugify(name, {
+      lower: true,
+      strict: true,
+      trim: true,
+    });
+
     const existingSlug = await prisma.category.findFirst({
       where: {
         slug,
@@ -182,22 +161,14 @@ const updateCategoryIntoDB = async (
     });
 
     if (existingSlug) {
-      throw new AppError(
-        StatusCodes.CONFLICT,
-        "Category slug already exists."
-      );
+      throw new AppError(StatusCodes.CONFLICT, "Category slug already exists.");
     }
   }
 
-  // Cannot set itself as parent
-  if (parentId === categoryId) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "A category cannot be its own parent."
-    );
+  if (parentId && parentId === categoryId) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "A category cannot be its own parent.");
   }
 
-  // Parent category exists
   if (parentId) {
     const parentCategory = await prisma.category.findUnique({
       where: {
@@ -206,21 +177,26 @@ const updateCategoryIntoDB = async (
     });
 
     if (!parentCategory) {
-      throw new AppError(
-        StatusCodes.NOT_FOUND,
-        "Parent category not found."
-      );
+      throw new AppError(StatusCodes.NOT_FOUND, "Parent category not found.");
     }
   }
 
-  const updatedCategory = await prisma.category.update({
+  return prisma.category.update({
     where: {
       id: categoryId,
     },
-    data: payload,
-  });
 
-  return updatedCategory;
+    data: {
+      ...(name && { name }),
+      ...(slug && { slug }),
+      ...(description !== undefined && {
+        description,
+      }),
+      ...(parentId !== undefined && {
+        parentId: parentId ?? null,
+      }),
+    },
+  });
 };
 
 const deleteCategoryFromDB = async (categoryId: string) => {
@@ -232,10 +208,7 @@ const deleteCategoryFromDB = async (categoryId: string) => {
   });
 
   if (!category) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "Category not found."
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "Category not found.");
   }
 
   // Check child categories
@@ -246,10 +219,7 @@ const deleteCategoryFromDB = async (categoryId: string) => {
   });
 
   if (childCategory) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "Cannot delete category because it has child categories."
-    );
+    throw new AppError(StatusCodes.BAD_REQUEST, "Cannot delete category because it has child categories.");
   }
 
   // Check gear items
@@ -260,10 +230,7 @@ const deleteCategoryFromDB = async (categoryId: string) => {
   });
 
   if (gearItem) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "Cannot delete category because it contains gear items."
-    );
+    throw new AppError(StatusCodes.BAD_REQUEST, "Cannot delete category because it contains gear items.");
   }
 
   await prisma.category.delete({

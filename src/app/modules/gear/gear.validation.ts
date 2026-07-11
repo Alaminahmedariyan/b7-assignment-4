@@ -4,48 +4,36 @@ const createGearValidationSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, "Gear name must be at least 2 characters.")
-    .max(150, "Gear name cannot exceed 150 characters."),
-
-  slug: z
-    .string()
-    .trim()
-    .regex(
-      /^[a-z0-9-]+$/,
-      "Slug can contain only lowercase letters, numbers and hyphens."
-    ),
+    .min(2)
+    .max(150),
 
   description: z
     .string()
     .trim()
-    .min(10, "Description must be at least 10 characters."),
+    .min(10),
 
   brand: z.string().trim().optional(),
 
   pricePerDay: z.coerce
     .number()
-    .positive("Price must be greater than zero."),
+    .positive(),
 
   totalQuantity: z.coerce
     .number()
     .int()
-    .min(1, "Quantity must be at least 1."),
+    .min(1),
 
   specifications: z.any().optional(),
 
-  categoryId: z
-    .string()
-    .trim()
-    .min(1, "Category is required."),
+  categoryId: z.string().trim(),
 });
 
 const updateGearValidationSchema = z.object({
-  name: z.string().trim().min(2).max(150).optional(),
-
-  slug: z
+  name: z
     .string()
     .trim()
-    .regex(/^[a-z0-9-]+$/)
+    .min(2)
+    .max(150)
     .optional(),
 
   description: z
@@ -56,11 +44,18 @@ const updateGearValidationSchema = z.object({
 
   brand: z.string().trim().optional(),
 
-  pricePerDay: z.number().positive().optional(),
+  pricePerDay: z.coerce
+    .number()
+    .positive()
+    .optional(),
 
-  totalQuantity: z.number().int().min(1).optional(),
+  totalQuantity: z.coerce
+    .number()
+    .int()
+    .min(1)
+    .optional(),
 
-  specifications: z.record(z.string(), z.any()).optional(),
+  specifications: z.any().optional(),
 
   categoryId: z.string().optional(),
 

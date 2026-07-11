@@ -7,12 +7,7 @@ model GearItem {
   pricePerDay    Decimal @db.Decimal(10, 2)
   totalQuantity  Int     @default(1)
   specifications Json?
-
-  // NOTE: this is a manual provider-controlled flag only
-  // (e.g. "paused"/"hidden" listing). It does NOT reflect
-  // real-time date-based availability. Compute actual
-  // availability at query time as:
-  //   totalQuantity - (sum of overlapping active rentalOrderItems)
+  
   isListed Boolean @default(true)
 
   createdAt DateTime  @default(now())
@@ -31,7 +26,6 @@ model GearItem {
 
   @@index([providerId])
   @@index([categoryId])
-  @@index([slug])
   @@index([isListed])
   @@map("gear_items")
 }

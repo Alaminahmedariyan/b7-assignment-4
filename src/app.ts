@@ -5,7 +5,6 @@ import express, { Application, Request, Response } from "express";
 import config from "./app/config";
 import { globalErrorHandler } from "./app/middlewares/globalErrorHandler";
 import { notFound } from "./app/middlewares/notFound";
-import { paymentRoutes } from "./app/modules/payment/payment.route";
 import { globalRoutes } from "./app/routes";
 
 const app: Application = express();
@@ -18,18 +17,11 @@ app.use(
   })
 );
 
-// Stripe Webhook (Future)
-app.use(
-  "/api/v1/payments/webhook",
-  express.raw({ type: "application/json" })
-);
 
 // Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// All Payment APIs
-app.use("/api/v1/payments", paymentRoutes);
 // Cookie Parser
 app.use(cookieParser());
 

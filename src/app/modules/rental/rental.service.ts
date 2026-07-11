@@ -12,10 +12,11 @@ import { StatusCodes } from "http-status-codes";
 import { calculateRentalDays, generateOrderNumber, generateTransactionId } from "./rental.utils";
 
 import { activeRentalStatuses } from "./rental.constant";
-import { stripe } from "../payment/payment.stripe";
-import config from "../../config";
 
-const createRentalIntoDB = async (customerId: string, payload: CreateRentalPayload) => {
+const createRentalIntoDB = async (
+  customerId: string,
+  payload: CreateRentalPayload
+) => {
   const customer = await prisma.user.findUnique({
     where: {
       id: customerId,
@@ -24,19 +25,32 @@ const createRentalIntoDB = async (customerId: string, payload: CreateRentalPaylo
   });
 
   if (!customer) {
-    throw new AppError(StatusCodes.NOT_FOUND, "Customer not found.");
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "Customer not found."
+    );
   }
-
-  const startDate = new Date(payload.startDate);
-  const endDate = new Date(payload.endDate);
-
-  const rentalDays = calculateRentalDays(startDate, endDate);
 
   let totalAmount = 0;
 
   const orderItems: Prisma.RentalOrderItemCreateWithoutRentalOrderInput[] = [];
 
   for (const item of payload.items) {
+    const startDate = new Date(item.startDate);
+    const endDate = new Date(item.endDate);
+
+    if (
+      isNaN(startDate.getTime()) ||
+      isNaN(endDate.getTime())
+    ) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "Invalid rental dates."
+      );
+    }
+
+    const rentalDays = calculateRentalDays(startDate, endDate);
+
     const gear = await prisma.gearItem.findFirst({
       where: {
         id: item.gearItemId,
@@ -46,7 +60,10 @@ const createRentalIntoDB = async (customerId: string, payload: CreateRentalPaylo
     });
 
     if (!gear) {
-      throw new AppError(StatusCodes.NOT_FOUND, "Gear not found.");
+      throw new AppError(
+        StatusCodes.NOT_FOUND,
+        "Gear not found."
+      );
     }
 
     const booked = await prisma.rentalOrderItem.aggregate({
@@ -76,10 +93,16 @@ const createRentalIntoDB = async (customerId: string, payload: CreateRentalPaylo
     const available = gear.totalQuantity - bookedQuantity;
 
     if (available < item.quantity) {
-      throw new AppError(StatusCodes.BAD_REQUEST, `${gear.name} has only ${available} available.`);
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        `${gear.name} has only ${available} available.`
+      );
     }
 
-    const subtotal = Number(gear.pricePerDay) * rentalDays * item.quantity;
+    const subtotal =
+      Number(gear.pricePerDay) *
+      rentalDays *
+      item.quantity;
 
     totalAmount += subtotal;
 
